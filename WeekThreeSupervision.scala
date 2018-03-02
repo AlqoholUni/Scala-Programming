@@ -27,13 +27,13 @@ class MainSupervisor extends Actor with ActorLogging {
   import scala.concurrent.duration._
 
   override val supervisorStrategy = OneForOneStrategy(maxNrOfRetries = 10, withinTimeRange = Duration(1, "minute")) {
-    case _: ArithmeticException      =>
+    case _: ArithmeticException =>
       log.info("MainSupervisor: ArithmeticException has reached me, carry on"); Resume
-    case _: NullPointerException     =>
+    case _: NullPointerException =>
       log.info("MainSupervisor: NullPointerException has reached me, restart the Supervisor"); Restart
     case _: IllegalArgumentException =>
       log.info("MainSupervisor: IllegalArgumentException has reached me, stop the Supervisor"); Stop
-    case _: Exception                => 
+    case _: Exception =>
       log.info("MainSupervisor: Exception has reached me, stop the Supervisor - Exception message will now be visible"); Stop
   }
 
@@ -86,13 +86,13 @@ class Supervisor extends Actor with ActorLogging {
 
   // define strategy for handling issues
   override val supervisorStrategy = OneForOneStrategy(maxNrOfRetries = 10, withinTimeRange = Duration(1, "minute")) {
-    case _: ArithmeticException      =>
+    case _: ArithmeticException =>
       log.info("Supervisor: No issues, Resuming child"); Resume
-    case _: NullPointerException     =>
+    case _: NullPointerException =>
       log.info("Supervisor: Minor issues, Restarting child"); Restart
     case _: IllegalArgumentException =>
       log.info("Supervisor: Major issues, Stopping child forever, no Escalating"); Stop
-    case _: Exception                => 
+    case _: Exception =>
       log.info("Supervisor: Crysis! Child died - Escalating issue to MainSupervisor - exception will not be visible at this level"); Escalate
   }
 
@@ -152,18 +152,18 @@ class Child extends Actor with ActorLogging {
   import akka.actor.OneForOneStrategy
   import akka.actor.SupervisorStrategy._ // provides Resume/Restart/Stop/Escalate
   import scala.concurrent.duration._
-  
+
   override val supervisorStrategy = OneForOneStrategy(maxNrOfRetries = 10, withinTimeRange = Duration(1, "minute")) {
     case _: IllegalArgumentException =>
       log.info("Child: Major issues, Stopping abacus forever, no Escalating"); Stop
-    case _: Exception                => 
+    case _: Exception =>
       log.info("Child: Crysis! Abacus exception thrown - Escalating issue to Supervisor - exception will not be visible at this level"); Escalate
   }
 
   var state = 0
-  
+
   def receive = {
-    
+
     case p: Props =>
       sender ! context.actorOf(p)
 
@@ -186,12 +186,12 @@ class Child extends Actor with ActorLogging {
 
   override def preStart() {
     log.info(s"Child About to Start.")
-    
+
     val abacus = context.actorOf(Props[Abacus], "abacus")
 
     self ! abacus
     abacus ! Summation(3, 10)
-    
+
     super.preStart() // carry out the procedure
   }
 
